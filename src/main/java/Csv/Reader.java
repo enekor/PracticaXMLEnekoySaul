@@ -1,10 +1,14 @@
 package Csv;
 
+import Mapas.EstacionesMapas;
 import lombok.Data;
 
 import java.io.*;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,7 +28,11 @@ public class Reader {
         return reader;
     }
 
-    public List<String> getAttributes() {
+    /**
+     * sacamos todos los elementos de la primera linea del xml, que son los nombres de cada posicion
+     * @return la lista de nombres de futuros elementos
+     */
+    private List<String> getNombres() {
         List<String> returner =  null;
         try {
             BufferedReader br = new BufferedReader(new FileReader(new File(calidadCsv)));
@@ -33,6 +41,34 @@ public class Reader {
             e.printStackTrace();
         }
         return returner;
+    }
+
+    /**
+     * cracion de los mapas de estaciones
+     * @throws IOException
+     */
+    private void createmap() throws IOException {
+        EstacionesMapas em = EstacionesMapas.getInstance();
+        String path = System.getProperty("user.dir")+File.separator+"Datos"+File.separator+"calidad_aire_estaciones.csv";
+
+        List<String> estacionesList = Files.readAllLines(Path.of(path));
+
+        for(String a : estacionesList){
+
+            StringTokenizer st = new StringTokenizer(a,";");
+
+            String codigo = st.nextToken();
+            int codigoMunicipio = Integer.parseInt(codigo.substring(2,5));
+            st.nextElement();
+            String nombre = st.nextToken();
+            em.fillCodigoMunicipio(codigoMunicipio,nombre);
+            em.fillCodigoNacional(Integer.parseInt(codigo),nombre);
+        }
+    }
+
+    public void start() throws IOException {
+        getNombres();
+        createmap();
     }
 
     /*public static void main(String[] args) {
